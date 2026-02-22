@@ -25,12 +25,14 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 # CONFIG
 # ─────────────────────────────────────────────
 
-st.set_page_config(
-    page_title="Sit With This",
-    page_icon="○",
-    layout="centered",
-    initial_sidebar_state="collapsed",
-)
+# Page config is set in main.py when running as part of the suite
+if __name__ == "__main__":
+    st.set_page_config(
+        page_title="Sit With This",
+        page_icon="○",
+        layout="centered",
+        initial_sidebar_state="collapsed",
+    )
 
 # ─────────────────────────────────────────────
 # CUSTOM CSS
@@ -48,7 +50,7 @@ st.markdown("""
 
     /* Hide streamlit chrome */
     #MainMenu, footer, header { visibility: hidden; }
-    .block-container { padding-top: 2rem; max-width: 740px; }
+    .block-container { padding-top: 2rem; max-width: 960px; }
 
     /* Typography */
     h1, h2, h3 {
@@ -101,7 +103,7 @@ st.markdown("""
     .philosopher-meta {
         font-family: 'DM Sans', sans-serif;
         font-size: 0.75rem;
-        color: #5a5550;
+        color: #fff;
         letter-spacing: 0.02em;
     }
 
@@ -128,7 +130,7 @@ st.markdown("""
         font-size: 0.7rem;
         letter-spacing: 0.2em;
         text-transform: uppercase;
-        color: #5a5550;
+        color: #fff;
         font-family: 'DM Sans', sans-serif;
         margin-bottom: 16px;
     }
@@ -151,6 +153,7 @@ st.markdown("""
         font-weight: 500 !important;
         letter-spacing: 0.02em !important;
         transition: all 0.3s !important;
+        white-space: nowrap !important;
     }
 
     /* Primary button */
@@ -159,7 +162,8 @@ st.markdown("""
         background: linear-gradient(135deg, #8a6840, #6a5030) !important;
         color: #f0ece6 !important;
         border: none !important;
-        padding: 10px 28px !important;
+        padding: 12px 24px !important;
+        min-width: 180px !important;
         box-shadow: 0 4px 20px rgba(138,104,64,0.2) !important;
     }
 
@@ -169,7 +173,24 @@ st.markdown("""
         background: transparent !important;
         border: 1px solid #2a2520 !important;
         color: #7a7570 !important;
-        padding: 10px 28px !important;
+        padding: 12px 24px !important;
+        min-width: 180px !important;
+    }
+
+    /* Button container spacing */
+    div[data-testid="stButton"] {
+        margin: 8px 0 !important;
+    }
+
+    /* Column gap fix */
+    div[data-testid="column"] {
+        padding: 0 8px !important;
+    }
+    div[data-testid="column"]:first-child {
+        padding-left: 0 !important;
+    }
+    div[data-testid="column"]:last-child {
+        padding-right: 0 !important;
     }
 
     /* Radio/selectbox overrides */
@@ -200,7 +221,7 @@ st.markdown("""
         border-radius: 100px;
         border: 1px solid #2a2520;
         background: transparent;
-        color: #5a5550;
+        color: #fff;
         padding: 8px 22px;
         font-family: 'DM Sans', sans-serif;
         font-size: 0.82rem;
@@ -376,7 +397,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown(f"""
-    <div style="font-size: 0.78rem; color: #5a5550; line-height: 1.7;">
+    <div style="font-size: 0.78rem; color: #fff; line-height: 1.7;">
         <strong style="color: #8a7a6a;">{len(TEACHINGS)}</strong> teachings<br>
         <strong style="color: #8a7a6a;">{len(get_philosophers())}</strong> philosophers<br>
         <strong style="color: #8a7a6a;">{len(get_traditions())}</strong> traditions<br>
@@ -400,7 +421,7 @@ with st.sidebar:
 
 st.markdown("""
 <div style="text-align: center; margin-bottom: 8px;">
-    <div style="font-size: 0.7rem; letter-spacing: 0.25em; text-transform: uppercase; color: #5a5550; font-family: 'DM Sans', sans-serif; margin-bottom: 14px;">
+    <div style="font-size: 0.7rem; letter-spacing: 0.25em; text-transform: uppercase; color: #fff; font-family: 'DM Sans', sans-serif; margin-bottom: 14px;">
         Daily Contemplation
     </div>
 </div>
@@ -409,7 +430,7 @@ st.markdown("""
 st.markdown("<h1 style='text-align:center; font-size:2.6rem; margin-bottom:4px; letter-spacing:-0.02em;'>Sit With This</h1>", unsafe_allow_html=True)
 
 st.markdown("""
-<p style="text-align:center; font-size:0.88rem; color:#6a6560; font-weight:300; max-width:400px; margin:0 auto 36px; line-height:1.6; font-family:'DM Sans',sans-serif;">
+<p style="text-align:center; font-size:0.88rem; color:#fff; font-weight:300; max-width:400px; margin:0 auto 36px; line-height:1.6; font-family:'DM Sans',sans-serif;">
     A teaching to carry through your day.<br>Not to memorize — to discover.
 </p>
 """, unsafe_allow_html=True)
@@ -430,12 +451,15 @@ def theme_selector(key_suffix):
     """Render theme pill selector."""
     theme_options = list(THEMES.keys())
     theme_labels = [f"{v['icon']} {v['label']}" for v in THEMES.values()]
-
-    cols = st.columns(len(theme_options))
     selected = st.session_state.get(f"theme_{key_suffix}", "all")
 
-    for i, (key, label) in enumerate(zip(theme_options, theme_labels)):
-        with cols[i]:
+    # Split into 2 rows: 4 buttons in first row, 3 in second row
+    # Row 1: First 4 themes
+    cols1 = st.columns(4)
+    for i in range(min(4, len(theme_options))):
+        key = theme_options[i]
+        label = theme_labels[i]
+        with cols1[i]:
             if st.button(
                 label,
                 key=f"theme_btn_{key}_{key_suffix}",
@@ -443,8 +467,38 @@ def theme_selector(key_suffix):
                 type="primary" if selected == key else "secondary",
             ):
                 st.session_state[f"theme_{key_suffix}"] = key
+                # Clear all contemplations and teachings when theme changes
                 st.session_state.contemplation = None
+                st.session_state.explore_contemplation = None
+                st.session_state.generated_contemplation = None
+                if "explore_teaching" in st.session_state:
+                    del st.session_state.explore_teaching
                 st.rerun()
+
+    # Row 2: Remaining themes
+    if len(theme_options) > 4:
+        st.markdown("<div style='margin-top: 8px;'></div>", unsafe_allow_html=True)
+        remaining = len(theme_options) - 4
+        cols2 = st.columns(remaining)
+        for i in range(remaining):
+            idx = i + 4
+            key = theme_options[idx]
+            label = theme_labels[idx]
+            with cols2[i]:
+                if st.button(
+                    label,
+                    key=f"theme_btn_{key}_{key_suffix}",
+                    use_container_width=True,
+                    type="primary" if selected == key else "secondary",
+                ):
+                    st.session_state[f"theme_{key_suffix}"] = key
+                    # Clear all contemplations and teachings when theme changes
+                    st.session_state.contemplation = None
+                    st.session_state.explore_contemplation = None
+                    st.session_state.generated_contemplation = None
+                    if "explore_teaching" in st.session_state:
+                        del st.session_state.explore_teaching
+                    st.rerun()
 
     return selected
 
@@ -466,7 +520,8 @@ with tab_daily:
         render_teaching_card(teaching)
 
         # Contemplation button
-        col1, col2, col3 = st.columns([1, 2, 1])
+        st.markdown("<div style='margin-top: 32px;'></div>", unsafe_allow_html=True)
+        col1, col2, col3 = st.columns([1, 1, 1])
         with col2:
             if st.button("✧ Help Me Sit With This", key="contemplate_daily", type="primary", use_container_width=True):
                 with st.spinner("Contemplating..."):
@@ -497,7 +552,8 @@ with tab_explore:
         render_teaching_card(st.session_state.explore_teaching)
 
         # Buttons
-        col1, col2 = st.columns(2)
+        st.markdown("<div style='margin-top: 16px;'></div>", unsafe_allow_html=True)
+        col1, col_gap, col2 = st.columns([1, 1, 1])
         with col1:
             if st.button("✧ Help Me Sit With This", key="contemplate_explore", type="primary", use_container_width=True):
                 with st.spinner("Contemplating..."):
@@ -566,7 +622,7 @@ with tab_generate:
     st.markdown("")
 
     # Generate button
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
         if st.button("✨ Generate Teaching", key="generate_btn", type="primary", use_container_width=True):
             api_key = st.session_state.get("api_key", ANTHROPIC_API_KEY)
@@ -613,7 +669,8 @@ with tab_generate:
         render_teaching_card(teaching)
 
         # Contemplation and regenerate buttons
-        col1, col2 = st.columns(2)
+        st.markdown("<div style='margin-top: 32px;'></div>", unsafe_allow_html=True)
+        col1, col_gap, col2 = st.columns([1, 1, 1])
         with col1:
             if st.button("✧ Help Me Sit With This", key="contemplate_generated", type="primary", use_container_width=True):
                 with st.spinner("Contemplating..."):
